@@ -1,4 +1,4 @@
-//#define AXIS_BOXES //currently not working properly. when entering values sometimes the spinning top misteriously disappears.
+#define AXIS_BOXES //currently not working properly. when entering values sometimes the spinning top misteriously disappears.
 //#define CHANGE_SYSTEM_TIMER_RESOLUTION
 #define SLEEP
 #ifndef SLEEP
@@ -74,6 +74,7 @@ extern float ymax_graph;
 extern int last_index;
 extern int graphID;
 extern const char* menu_labels[17];
+extern bool autorange;
 
 
 //Function declarations
@@ -92,6 +93,8 @@ void start_callback(Fl_Widget*);
 void pause_callback(Fl_Widget*);
 void stop_callback(Fl_Widget*);
 void main_window_cb(Fl_Widget*, void*);
+void autorangeButtonCallback(Fl_Widget*);
+void graphChoiceMenuCallback(Fl_Widget*);
 int CreateMyWindow(int, char**);
 
 
@@ -275,7 +278,6 @@ class MyGlutWindow2 : public Fl_Glut_Window {
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        setAxisRange();
         glViewport(0, 0, pixel_w(), pixel_h());  //Use the whole window for rendering
         glMatrixMode(GL_MODELVIEW);
 
@@ -287,6 +289,7 @@ class MyGlutWindow2 : public Fl_Glut_Window {
         static bool first_time = true;
         if (first_time) { valid(1); init();  FixViewport(w(), h()); first_time = false; }
 
+        setAxisRange();
         drawGraph();
     }
 
@@ -406,8 +409,8 @@ void graphmouseWheelFunction(int wheel_motion)
         ymin_graph -= zoom_scale * delta_y * wheel_motion;
         ymax_graph += zoom_scale * delta_y * wheel_motion;
     }
-
-    setAxisRange();
+    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+   
 }
 
 
@@ -430,8 +433,8 @@ void graphmouseMotionCallback(int xpos, int ypos)
 
         xmin_graph += dx, xmax_graph += dx;
         ymin_graph += dy, ymax_graph += dy;
-        setAxisRange();
     }
+    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
 }
 
 
@@ -441,14 +444,22 @@ void graphChoiceMenuCallback(Fl_Widget* f)
     last_index = 0; //reset for autorange
 }
 
-#ifdef AXIS_BOXES
+
 void autorangeButtonCallback(Fl_Widget* f)
 {
-    if(((Fl_Check_Button*)f)->value()) axis_boxes->deactivate();
-    else axis_boxes->activate();
-    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+    autorange = ((Fl_Check_Button*)f)->value();
+    if (autorange)
+    {
+        axis_boxes->deactivate();
+        x_zoom_only->deactivate();
+    }
+    else
+    {
+        axis_boxes->activate();
+        x_zoom_only->activate();
+    }
+  
 }
-#endif
 
 
 void createMenu(int key) { 
@@ -639,18 +650,14 @@ int CreateMyWindow(int argc, char** argv) {
     autorange_button = new Fl_Check_Button(x0 - 0.7 * slider_width, 0.028 * h_ext + 0.5 * main_window->h(), 0.5 * slider_width, slider_height, "Auto range");
     x_zoom_only = new Fl_Check_Button(x0 - 0.7 * slider_width, 0.028 * h_ext + 0.5 * main_window->h()+slider_height, 0.5 * slider_width, slider_height, "X axis only zoom");
     menu = new Fl_Choice(x0 - 1.88 * slider_width, 0.028 * h_ext + 0.5 * main_window->h(), 0.9*slider_width, slider_height);
-#ifdef AXIS_BOXES
     axis_boxes = new AxisRangeInput(x0 - 1.88 * slider_width, 0.045 * h_ext + 0.5 * main_window->h() + slider_height, 1.1*slider_width, slider_height,
         &xmin_graph, &xmax_graph, &ymin_graph, &ymax_graph, "xmin, xmax, ymin, ymax");
     axis_boxes->deactivate();
-#endif
-
+    x_zoom_only->deactivate();
 
     for (auto i : menu_labels) menu->add(i);
     menu->callback(graphChoiceMenuCallback);
-#ifdef AXIS_BOXES
     autorange_button->callback(autorangeButtonCallback);
-#endif
 
     //setting default values and bounds
     for (int i = 0; i < 3; ++i) 
@@ -710,7 +717,7 @@ int CreateMyWindow(int argc, char** argv) {
       {  FL_RED,         FL_HELVETICA_BOLD, 17 }, // A - Red
       {  0xffdc1e00,      FL_HELVETICA_BOLD, 17 }, // B - Yellow
       {  FL_DARK_GREEN,  FL_HELVETICA_BOLD, 17 }, // C - Green
-      {  FL_BLUE,        FL_HELVETICA_BOLD, 17 }, // D - Blue
+      {  FL_BLUE,        FL_HELVETICA_BOLD, 17 } // D - Blue
     };
 
     tbuff = new Fl_Text_Buffer;      // text buffer

@@ -736,8 +736,8 @@ void displaySpinningTop()
     }
     if(SHOW_FPS) drawFPS( std::string("FPS: ") + std::to_string( FPS ) );
 
-    glutSwapBuffers();
-    //glFlush();
+    //glutSwapBuffers();
+    glFlush();
 }
 
 void setInitialConditions()
@@ -1063,20 +1063,4 @@ inversione per il cono sotto perche è scalato -1 su z.
 
 LISTA INVERSIONE DI CULL:
 cull face front per trottola riflessa sul pavimento
-*/
-
-/*
-
-
-POSSIBILI GRAFICI:
-theta(t)
-phi(t)
-phidot(t)
-phi(phidot)
-phidot&theta (t)
-w1(t) & w2(t)
-w1(w2)
-wx & wy & wz (t)
-Lx & Ly & Lz (t)
-Energy(t)
 */

@@ -10,10 +10,12 @@
 #include <FL/Fl_Choice.H>
 #include <vector>
 #include <array>
+#include "AxisRangeInput.h"
 
 
 extern Fl_Choice* menu;
 extern Fl_Check_Button* autorange_button;
+extern AxisRangeInput* axis_boxes;
 extern std::vector<std::array<double, 3>> rcm_data;
 extern std::vector<std::array<double, 3>> L_lab_data;
 extern std::vector<std::array<double, 3>> L_top_data;
@@ -47,8 +49,8 @@ const char* menu_labels[]
     "phi (t)",
     "phidot (t)",
     "phidot vs phi",
-    "phidot & theta (t) (green & orange)",
-    "w1_top & w2_top (t) (green & orange)",
+    "phidot and theta (t) (green & orange)",
+    "w1_top and w2_top (t) (green & orange)",
     "w1_top vs w2_top",
     "Lx_lab (t)",
     "Ly_lab (t)",
@@ -78,12 +80,12 @@ enum menuItems
 };
 
 
-
 void setAxisRange()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+    if(autorange) axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -400,6 +402,7 @@ void drawGraph() {
     }
 
     glFlush();
+
 }
 
 

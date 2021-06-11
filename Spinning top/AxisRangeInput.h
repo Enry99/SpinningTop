@@ -14,10 +14,7 @@ class myFl_Float_Input : public Fl_Float_Input
 public:
     
   
-    myFl_Float_Input(int X, int Y, int W, int H, float* value, const char* l = 0) : Fl_Float_Input(X, Y, W, H, l), handled_val(value)
-    {
-
-    }
+    myFl_Float_Input(int X, int Y, int W, int H, float* value, const char* l = 0) : Fl_Float_Input(X, Y, W, H, l), handled_val(value) { }
 
     float handledvalue() { return *handled_val; }
     void handledvalue(float val) { *handled_val = val; }
@@ -56,11 +53,6 @@ class AxisRangeInput : public Fl_Group {
 
             recurse = 0;
 
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            gluOrtho2D(xmin_box->handledvalue(), xmax_box->handledvalue(), ymin_box->handledvalue(), ymax_box->handledvalue());
-            glMatrixMode(GL_MODELVIEW);
-           
         }
     }
 
