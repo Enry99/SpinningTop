@@ -1,3 +1,4 @@
+//#define AXIS_BOXES //currently not working properly. when entering values sometimes the spinning top misteriously disappears.
 //#define CHANGE_SYSTEM_TIMER_RESOLUTION
 #define SLEEP
 #ifndef SLEEP
@@ -9,6 +10,7 @@ extern bool goDraw;
 
 
 #include "slider_input.h"
+#include "AxisRangeInput.h"
 #include <FL/gl.h>
 #include <FL/glu.h>
 #include <FL/glut.H>
@@ -22,6 +24,8 @@ extern bool goDraw;
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Float_Input.H>
+#include <FL/Fl_Choice.H>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -37,6 +41,8 @@ extern void startAlgorithm();
 extern void displaySpinningTop();
 extern void animationLoop();
 extern void keyboardFunction(unsigned char, int, int);
+extern void setAxisRange();
+extern void drawGraph();
 extern GLfloat amb_light[4];
 extern GLfloat diffuse[4];
 extern GLfloat specular[4];
@@ -51,6 +57,7 @@ extern std::vector<std::array<double, 3>> L_top_data;
 extern std::vector<std::array<double, 3>> w_lab_data;
 extern std::vector<std::array<double, 3>> w_top_data;
 extern std::vector<std::array<double, 3>> theta_phi_phidot_data;
+extern std::vector<double> Energy_data;
 extern std::ofstream L_stream;
 extern std::ofstream w_stream;
 extern std::ofstream Energy_stream;
@@ -60,13 +67,24 @@ extern double values[15];
 extern bool run_animation;
 extern bool pause_animation;
 extern bool PERSISTENT_TRAIL;
+extern float xmin_graph;
+extern float xmax_graph;
+extern float ymin_graph;
+extern float ymax_graph;
+extern int last_index;
+extern int graphID;
+extern const char* menu_labels[17];
 
 
 //Function declarations
 void idleSpinningTop(void*);
+void idleGraph(void*);
 void mouseFunction(int, int, int, int);
 void mouseWheelFunction(int);
 void mouseMotionCallback(int, int);
+void graphmouseFunction(int, int, int, int);
+void graphmouseWheelFunction(int);
+void graphmouseMotionCallback(int, int);
 void createMenu(int);
 void activateButtons();
 void deactivateButtons();
@@ -87,6 +105,8 @@ double phi = 45.0f;
 double zoom_scale_factor = 1;
 int lastX = 0;
 int lastY = 0;
+int graphlastX = 0;
+int graphlastY = 0;
 bool mousePressed = false;
 double FPS_display_width, FPS_display_height;
 
@@ -143,12 +163,14 @@ SliderInput
 Fl_Check_Button * enable_gravity;
 Fl_Check_Button* enable_file_output;
 Fl_Check_Button* persistent_trail;
+Fl_Check_Button* autorange_button;
+Fl_Check_Button* x_zoom_only;
 Fl_Text_Buffer * tbuff;
 Fl_Text_Buffer * sbuff;
+Fl_Choice* menu;
+AxisRangeInput* axis_boxes;
 
 //end of declarations_____________________________
-
-
 
 
 //Spinning top window class
@@ -245,6 +267,7 @@ class MyGlutWindow2 : public Fl_Glut_Window {
     void init()
     {
         glClearColor(0.0, 0.0, 0.0, 0.0);
+        glEnable(GL_DEPTH_TEST);
     }
 
     void FixViewport(int W, int H) {
@@ -252,12 +275,8 @@ class MyGlutWindow2 : public Fl_Glut_Window {
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-
-
-        gluPerspective(45.0, (GLdouble)W / (GLdouble)H, 0.5, 100.0);
-
+        setAxisRange();
         glViewport(0, 0, pixel_w(), pixel_h());  //Use the whole window for rendering
-
         glMatrixMode(GL_MODELVIEW);
 
     }
@@ -268,7 +287,7 @@ class MyGlutWindow2 : public Fl_Glut_Window {
         static bool first_time = true;
         if (first_time) { valid(1); init();  FixViewport(w(), h()); first_time = false; }
 
-
+        drawGraph();
     }
 
     void resize(int X, int Y, int W, int H)
@@ -285,9 +304,11 @@ public:
     // OPENGL WINDOW CONSTRUCTOR
     MyGlutWindow2(int X, int Y, int W, int H, const char* L = 0) : Fl_Glut_Window(X, Y, W, H, L)
     {
-        //mode(FL_RGB | FL_DOUBLE | FL_DEPTH);
+        
         mode(FL_RGB | FL_DEPTH);
-        //Fl::add_idle(idleGraph, this);
+        Fl::add_idle(idleGraph, this);
+        this->mouse = graphmouseFunction;
+        this->motion = graphmouseMotionCallback;
         end();
     }
 
@@ -305,6 +326,12 @@ void idleSpinningTop(void*)
         goDraw = false;
     }
 #endif
+}
+
+
+void idleGraph(void*)
+{    
+    graph_window->redraw();
 }
 
 
@@ -355,6 +382,75 @@ void mouseMotionCallback(int xpos, int ypos)
 }
 
 
+void graphmouseFunction(int button, int state, int x, int y)
+{
+    graphlastX = x;
+    graphlastY = y;
+    mousePressed = state == GLUT_DOWN;
+    if (Fl::event() == FL_MOUSEWHEEL || Fl::event() == FL_ZOOM_GESTURE) graphmouseWheelFunction(Fl::event_dy());
+}
+
+
+void graphmouseWheelFunction(int wheel_motion)
+{
+    float zoom_scale = 0.03;
+    
+    float delta_x = xmax_graph - xmin_graph;
+    float delta_y = ymax_graph - ymin_graph;
+    
+    xmin_graph -= zoom_scale * delta_x * wheel_motion;
+    xmax_graph += zoom_scale * delta_x * wheel_motion;
+
+    if (!x_zoom_only->value())
+    {
+        ymin_graph -= zoom_scale * delta_y * wheel_motion;
+        ymax_graph += zoom_scale * delta_y * wheel_motion;
+    }
+
+    setAxisRange();
+}
+
+
+void graphmouseMotionCallback(int xpos, int ypos)
+{
+    if (mousePressed) //mousePressed is updated by mouseFunction
+    {
+        float dx = graphlastX - xpos; 
+        float dy = ypos - graphlastY;
+        graphlastX = xpos;
+        graphlastY = ypos;
+
+        float motion_scale = 1.;
+        float delta_x = xmax_graph - xmin_graph;
+        float delta_y = ymax_graph - ymin_graph;
+        float xSensitivity = motion_scale * delta_x / graph_window->pixel_w();
+        float ySensitivity = motion_scale * delta_y / graph_window->pixel_h();
+        dx *= xSensitivity;
+        dy *= ySensitivity;
+
+        xmin_graph += dx, xmax_graph += dx;
+        ymin_graph += dy, ymax_graph += dy;
+        setAxisRange();
+    }
+}
+
+
+void graphChoiceMenuCallback(Fl_Widget* f)
+{
+    graphID = ((Fl_Choice*)f)->value();
+    last_index = 0; //reset for autorange
+}
+
+#ifdef AXIS_BOXES
+void autorangeButtonCallback(Fl_Widget* f)
+{
+    if(((Fl_Check_Button*)f)->value()) axis_boxes->deactivate();
+    else axis_boxes->activate();
+    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+}
+#endif
+
+
 void createMenu(int key) { 
     keyboardFunction((unsigned char)key, 0, 0); 
 }
@@ -398,7 +494,8 @@ void deactivateButtons()
 void start_callback(Fl_Widget* f) {
 
     rotation_data.clear(), trail_points.clear(), W_vectors.clear(), L_vectors.clear(), T_vectors.clear();
-    rcm_data.clear(), L_lab_data.clear(), L_top_data.clear(), w_lab_data.clear(), w_top_data.clear(), theta_phi_phidot_data.clear();
+    rcm_data.clear(), L_lab_data.clear(), L_top_data.clear(), w_lab_data.clear(), w_top_data.clear(), theta_phi_phidot_data.clear(), Energy_data.clear();
+    last_index = 0;
 
     pause_animation = false, pause_button->clear();
 
@@ -494,7 +591,7 @@ int CreateMyWindow(int argc, char** argv) {
     double button_width = 0.9 * slider_width;
     double button_height = 2.5*h_ext*0.042;
 
-    main_window = new Fl_Window((Fl::w()- w_ext)/2, (Fl::h()-h_ext)/2, w_ext, h_ext, "Lagrange-spinning-top");
+    main_window = new Fl_Window((Fl::w()- w_ext)/2, (Fl::h()-h_ext)/2, w_ext, h_ext, "Lagrange spinning top");
     main_window->resizable(main_window);
     main_window->callback(main_window_cb);
     main_window->show(argc, argv);
@@ -509,7 +606,7 @@ int CreateMyWindow(int argc, char** argv) {
 
 
     //sliders
-    mass_slider = new SliderInput(x0, y0, slider_width, slider_height, "mass_slider (kg)", &values[0]);
+    mass_slider = new SliderInput(x0, y0, slider_width, slider_height, "mass (kg)", &values[0]);
     time_increment = new SliderInput(x0, y0 += delta_h, slider_width, slider_height, "dt (s)", &values[1]);
     total_time = new SliderInput(x0, y0 += delta_h, slider_width, slider_height, "total time (s)", &values[2]);
     initial_angle = new SliderInput(x0, y0 += delta_h, slider_width, slider_height, "theta_0 (rad)", &values[3]);
@@ -527,21 +624,34 @@ int CreateMyWindow(int argc, char** argv) {
 
 
     //buttons
-    start_button = new Fl_Button(x0, y0 += 1.1*delta_h, button_width, button_height, "@#> \tStart");
+    start_button = new Fl_Button(x0, y0 += 1.1*delta_h, button_width, button_height, "@#>\tStart");
     start_button->color(FL_GREEN);
-    pause_button = new Fl_Toggle_Button(x0 - 0.94 * slider_width, y0, button_width, button_height, "@#|| Pause/Unpause");
+    pause_button = new Fl_Toggle_Button(x0 - 0.94 * slider_width, y0, button_width, button_height, "@#||\tPause/Unpause");
     pause_button->color(FL_YELLOW);
-    stop_button = new Fl_Button(x0 - 1.88 * slider_width, y0, button_width, button_height, "@#square \tStop");
+    stop_button = new Fl_Button(x0 - 1.88 * slider_width, y0, button_width, button_height, "@#square\tStop");
     stop_button->color(FL_RED);
     reset_button = new Fl_Button(x0 - 1.88 * slider_width, y0 - 0.75* button_height, button_width, 0.6*button_height, "Reset sliders");
     reset_button->color(FL_CYAN);
+    vector_legend_box = new Fl_Text_Display(x0 - 1.88 * slider_width, 0.65 * h_ext, button_width, 0.9 * button_height, "Vectors legend");
     enable_gravity = new Fl_Check_Button(x0 - 0.7*slider_width, 0.78 * h_ext, 0.4*slider_width, slider_height, "Enable gravity");
-    enable_file_output = new Fl_Check_Button(x0 - 0.7*slider_width, 0.6 * h_ext, 0.5*slider_width, slider_height, "Output data on file");
+    enable_file_output = new Fl_Check_Button(x0 - 0.7*slider_width, 0.65 * h_ext, 0.5*slider_width, slider_height, "Output data on file");
     persistent_trail = new Fl_Check_Button(x0 - 0.7 * slider_width, 0.81 * h_ext, 0.4 * slider_width, slider_height, "Persistent trail");
+    autorange_button = new Fl_Check_Button(x0 - 0.7 * slider_width, 0.028 * h_ext + 0.5 * main_window->h(), 0.5 * slider_width, slider_height, "Auto range");
+    x_zoom_only = new Fl_Check_Button(x0 - 0.7 * slider_width, 0.028 * h_ext + 0.5 * main_window->h()+slider_height, 0.5 * slider_width, slider_height, "X axis only zoom");
+    menu = new Fl_Choice(x0 - 1.88 * slider_width, 0.028 * h_ext + 0.5 * main_window->h(), 0.9*slider_width, slider_height);
+#ifdef AXIS_BOXES
+    axis_boxes = new AxisRangeInput(x0 - 1.88 * slider_width, 0.045 * h_ext + 0.5 * main_window->h() + slider_height, 1.1*slider_width, slider_height,
+        &xmin_graph, &xmax_graph, &ymin_graph, &ymax_graph, "xmin, xmax, ymin, ymax");
+    axis_boxes->deactivate();
+#endif
 
-    vector_legend_box = new Fl_Text_Display(x0 - 1.88 * slider_width, 0.62 * h_ext, button_width, 0.9*button_height, "Vectors legend");
 
-   
+    for (auto i : menu_labels) menu->add(i);
+    menu->callback(graphChoiceMenuCallback);
+#ifdef AXIS_BOXES
+    autorange_button->callback(autorangeButtonCallback);
+#endif
+
     //setting default values and bounds
     for (int i = 0; i < 3; ++i) 
     {
@@ -589,6 +699,8 @@ int CreateMyWindow(int argc, char** argv) {
     pause_button->callback(pause_callback);
     stop_button->callback(stop_callback);
     reset_button->callback(reset_callback);
+    autorange_button->value(1);
+    x_zoom_only->value(0);
 
   
     //Vectors legend***************************************************

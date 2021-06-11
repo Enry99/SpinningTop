@@ -311,7 +311,7 @@ void drawAxis(){
         glRasterPos3d(0, 1.1 * length, 0);
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'Y');
         glRasterPos3d(0, 0, 1.1 * length);
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'Y');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'Z');
     }
 }
 
@@ -1066,11 +1066,7 @@ cull face front per trottola riflessa sul pavimento
 */
 
 /*
-spazio delle fasi gnuplot - jacopo
-pulsanti scelta grafici con menu a tendina
-SCALARE DIMENSIONE TROTTOLA OPENGL
 
-al posto di ifdef dataoutput mettere un checkbox
 
 POSSIBILI GRAFICI:
 theta(t)
