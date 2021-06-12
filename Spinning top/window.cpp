@@ -1,4 +1,3 @@
-#define AXIS_BOXES //currently not working properly. when entering values sometimes the spinning top misteriously disappears.
 //#define CHANGE_SYSTEM_TIMER_RESOLUTION
 #define SLEEP
 #ifndef SLEEP
