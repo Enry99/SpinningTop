@@ -25,10 +25,10 @@ extern std::vector<std::array<double, 3>> theta_phi_phidot_data;
 extern std::vector<double> Energy_data;
 extern double delta_t;
 
-float xmin_graph = -1;
-float xmax_graph = 1;
-float ymin_graph = -1;
-float ymax_graph = 1;
+double xmin_graph = -1;
+double xmax_graph = 1;
+double ymin_graph = -1;
+double ymax_graph = 1;
 bool autorange = true;
 double data_xMax;
 double data_xMin;
@@ -85,7 +85,7 @@ void setAxisRange()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
-    if(autorange) axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+    if(autorange) axis_boxes->set_text_values(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
     glMatrixMode(GL_MODELVIEW);
 }
 

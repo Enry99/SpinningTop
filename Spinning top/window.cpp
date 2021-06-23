@@ -66,10 +66,10 @@ extern double values[15];
 extern bool run_animation;
 extern bool pause_animation;
 extern bool PERSISTENT_TRAIL;
-extern float xmin_graph;
-extern float xmax_graph;
-extern float ymin_graph;
-extern float ymax_graph;
+extern double xmin_graph;
+extern double xmax_graph;
+extern double ymin_graph;
+extern double ymax_graph;
 extern int last_index;
 extern int graphID;
 extern const char* menu_labels[17];
@@ -408,7 +408,7 @@ void graphmouseWheelFunction(int wheel_motion)
         ymin_graph -= zoom_scale * delta_y * wheel_motion;
         ymax_graph += zoom_scale * delta_y * wheel_motion;
     }
-    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+    axis_boxes->set_text_values(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
    
 }
 
@@ -433,7 +433,7 @@ void graphmouseMotionCallback(int xpos, int ypos)
         xmin_graph += dx, xmax_graph += dx;
         ymin_graph += dy, ymax_graph += dy;
     }
-    axis_boxes->setvalues(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
+    axis_boxes->set_text_values(xmin_graph, xmax_graph, ymin_graph, ymax_graph);
 }
 
 

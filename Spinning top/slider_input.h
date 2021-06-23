@@ -105,6 +105,14 @@ public:
     double maximum() const  { return slider->maximum(); }
     void bounds(double low, double high) { slider->bounds(low, high); }
     void step(double epsilon){ slider->step(epsilon);}
+
+    
+    ~SliderInput()
+    {
+        delete input;
+        delete slider;
+        //do not delete handled_value since it is an external variable
+    }
     
 };
 
