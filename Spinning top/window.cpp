@@ -91,6 +91,7 @@ void deactivateButtons();
 void start_callback(Fl_Widget*);
 void pause_callback(Fl_Widget*);
 void stop_callback(Fl_Widget*);
+void reset_callback(Fl_Widget*);
 void main_window_cb(Fl_Widget*, void*);
 void autorangeButtonCallback(Fl_Widget*);
 void graphChoiceMenuCallback(Fl_Widget*);
@@ -192,7 +193,7 @@ class MyGlutWindow : public Fl_Glut_Window {
         glutAddMenuEntry(a_label, 'a');
         glutAddMenuEntry(f_label, 'f');
         glutAddMenuEntry(s_label, 's');
-        glutAddMenuEntry(x_label, 'x');
+        glutAddMenuEntry(x_label, ' ');
         glutAddMenuEntry(h_label, 'h');
         glutAttachMenu(GLUT_RIGHT_BUTTON);
 
