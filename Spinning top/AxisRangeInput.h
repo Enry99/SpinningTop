@@ -36,7 +36,7 @@ public:
 #if defined(WIN32)
         if (sscanf_s(this->value(), "%lf", &val) != 1) val = *handled_vals[index];
 #else
-        if (sscanf(this->value(), "%lf", &val) != 1) val = handled_vals[index];
+        if (sscanf(this->value(), "%lf", &val) != 1) val = *handled_vals[index];
 #endif
         switch (index) //if xmin>=xmax, ymin>=ymax leaves previous value
         {

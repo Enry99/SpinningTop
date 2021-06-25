@@ -91,6 +91,7 @@ void deactivateButtons();
 void start_callback(Fl_Widget*);
 void pause_callback(Fl_Widget*);
 void stop_callback(Fl_Widget*);
+void reset_callback(Fl_Widget*);
 void main_window_cb(Fl_Widget*, void*);
 void autorangeButtonCallback(Fl_Widget*);
 void graphChoiceMenuCallback(Fl_Widget*);
