@@ -15,4 +15,4 @@ To build it on Linux one of these commands should work (provided they are run in
   $ g++ main.cpp window.cpp graph.cpp-lGLU  -lfltk -lGL -lfltk_gl
 
 
-This project relies on FLTK 1.3.6 library (www.fltk.org). FLTK' source files are included in this repository, as well as compiled x64 libraries (.lib) for Microsoft Windows.
+This project relies on FLTK 1.3.6 library (www.fltk.org). FLTK' header files are included in this repository, as well as compiled x64 libraries (.lib) for Microsoft Windows.
