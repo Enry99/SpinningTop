@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="AxisRangeInput.h" />
     <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="slider_input.h" />
   </ItemGroup>
   <ItemGroup>
@@ -28,12 +29,20 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Spinning top.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico" />
+    <Image Include="icon.PNG" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{70e145a9-a19e-409f-a6d9-d2b82f2d99a4}</ProjectGuid>
     <RootNamespace>Spinningtop</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>SpinningTop</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,7 +103,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(ProjectDir)\FLTK;$(IncludePath);$(ProjectDir)</IncludePath>
+    <IncludePath>$(ProjectDir)\FLTK;$(IncludePath)\;$(ProjectDir)\</IncludePath>
     <LibraryPath>$(ProjectDir)\FLTK\lib_64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -860,10 +860,13 @@ void evolve()
 
         while (accumulator >= delta_t && t<=tf)
         {
+            double g;
+            if (enable_gravity->value()) g = 9.81; else g = 0;
+            
             FORCE[0] = values[7];
             FORCE[1] = values[8];
             FORCE[2] = values[9];
-            if (enable_gravity->value()) FORCE[2] -= mass * 9.81;
+            FORCE[2] -= mass * g;
             //FORCE[0] += cos(2*t);
             //FORCE[1] += sin(t);
             
@@ -928,7 +931,7 @@ void evolve()
             double theta = acos(Rcm[2] / Rcm_top[2]); //arccos(z/l_cm)
             double phi = atan2(Rcm[1], Rcm[0]);
             double phidot = (L_lab[2] - L[2] * cos(theta)) / (I1 * sin(theta) * sin(theta));
-            double E =(I1*w0[0]*w0[0]+I2*w0[1]*w0[1]+I3*w0[2]*w0[2])/2. + mass*9.81*Rcm[2];
+            double E =(I1*w0[0]*w0[0]+I2*w0[1]*w0[1]+I3*w0[2]*w0[2])/2. + mass*g*Rcm[2];
 
             rcm_data.push_back({ Rcm [0], Rcm[1], Rcm[2] });
             L_lab_data.push_back({ L_lab[0], L_lab[1], L_lab[2] });
