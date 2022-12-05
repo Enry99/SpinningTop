@@ -12,7 +12,7 @@ Precompiled binary executable for Microsoft Windows is available in release.
 
 To build it on Linux one of these commands should work (provided they are run in 'Spinning top' source folder): 
   $ g++ main.cpp window.cpp graph.cpp `fltk-config --use-forms --use-gl  --ldstaticflags --cxxflags`
-  $ g++ main.cpp window.cpp graph.cpp-lGLU  -lfltk -lGL -lfltk_gl
+  $ g++ main.cpp window.cpp graph.cpp -lGLU  -lfltk -lGL -lfltk_gl
 
 
 This project relies on FLTK 1.3.6 library (www.fltk.org). FLTK' header files are included in this repository, as well as compiled x64 libraries (.lib) for Microsoft Windows.
